@@ -34,6 +34,7 @@ Each tool has one job. Ask before moving a responsibility to a different tool.
 - **Policy knowledge:** a Sanity Context endpoint in Knowledge Base mode. Context endpoints are created in the Dashboard's Context app and read with an organization token (Context Viewer), per https://www.sanity.io/docs/ai/context-migration-guide. One endpoint serves one mode. The Context skill still describes `sanity.agentContext` Studio documents with a project token; that route is deprecated, so don't use it.
 - **Typed decisions** (which stay topics and policies answer a question): Jev, called from API routes through the AI SDK's `experimental_evaluate` with the `@ai-sdk/typesafe-ai` provider and `TYPESAFE_AI_API_KEY`. No Vercel AI Gateway. Keep `ai` and `@ai-sdk/typesafe-ai` pinned to exact versions, since the API is experimental.
 - **Answer text:** none generated. Answers show the stay's own fields and policy text word for word, with their source. No LLM runs in the app.
+- **Styling:** NativeWind v5 RC (Tailwind 4) via `className`. Setup follows https://www.nativewind.dev/v5/llms-full.txt: `src/global.css` (imported once in `src/app/_layout.tsx`), `metro.config.js`, `postcss.config.mjs`. Keep `nativewind`, `react-native-css`, `tailwindcss`, `@tailwindcss/postcss`, and `lightningcss` pinned to exact versions, with the `lightningcss` override in `package.json`.
 - **Analytics:** PostHog, identified through Clerk.
 
 ## Rules
@@ -71,7 +72,11 @@ Designs are attached in the chat. Screens must match them exactly: layout, spaci
 - Icons, fonts, and brand images come from `assets/` or the chosen icon library, never recreated from a screenshot. Sample property photos may be remote placeholder images. If an asset is missing, use a marked placeholder and list it.
 - Map every color, font, spacing value, and radius to a design-system token. List values with no token in the plan as proposed new tokens instead of hardcoding them. When creating the design system itself, derive the tokens from the designs.
 - UI plans describe the design (elements, states, tokens, assets) well enough to build without the image. If building in a new session, ask for the design to be attached again.
-- After building, open the screen in the iOS simulator (deep link with `xcrun simctl openurl booted <url>` when it isn't the first screen; the scheme is in `app.json`), take a screenshot (`xcrun simctl io booted screenshot <path>`), and compare it with the design. List every difference, fix, and repeat. Report which values were estimated from an image.
+- After building, check the screen on the user's iPhone through macOS iPhone Mirroring, then compare it with the design. List every difference, fix, and repeat. Report which values were estimated from an image.
+  - The user runs `npx expo start` and opens the screen on the phone. You can see the phone but can't tap or type on it, so ask the user to navigate when needed.
+  - Capture with `screencapture -x <scratchpad>/screen.png` (a normal sandboxed Bash call; VS Code has Screen Recording permission), then Read the image. It captures the whole display, so find the iPhone Mirroring window in it.
+  - A restyled screen proves the change only when nothing else could produce that look. For example, a `className` layout with no `StyleSheet` fallback.
+  - This Mac has no Xcode CLI, so `xcrun simctl` isn't available. If Xcode is installed later, the iOS simulator works too: `xcrun simctl openurl booted <url>` (scheme in `app.json`) and `xcrun simctl io booted screenshot <path>`.
 
 ## Reporting
 
