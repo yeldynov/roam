@@ -22,5 +22,7 @@ export default function RootLayout() {
   // A font error falls back to the system font rather than a blank app
   if (!loaded && !error) return null;
 
-  return <Stack />;
+  return (
+    <Stack screenOptions={{ headerShown: false }} />
+  );
 }

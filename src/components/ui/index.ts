@@ -4,6 +4,7 @@ export * from "./button";
 export * from "./chip";
 export * from "./icon";
 export * from "./icon-button";
+export * from "./brand-logo";
 export * from "./input";
 export * from "./segmented-control";
 export * from "./stepper";

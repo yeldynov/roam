@@ -5,12 +5,13 @@ import {
   Briefcase,
   Building,
   Calendar,
+  ChevronLeft,
   CreditCard,
   FileText,
-  Globe,
   Heart,
   House,
   List,
+  Mail,
   Lock,
   Map as MapIcon,
   MapPin,
@@ -35,6 +36,8 @@ import {
   Badge,
   Button,
   Chip,
+  AppleLogo,
+  GoogleLogo,
   Icon,
   IconButton,
   Input,
@@ -99,10 +102,11 @@ export default function DesignSystem() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Design system" }} />
+      <Stack.Screen options={{ title: "Design system", headerShown: true }} />
       <ScrollView className="flex-1 bg-canvas" contentContainerClassName="gap-4 p-4 pb-16">
         <Section n="01" title="Brand">
           <Wordmark size="lg" />
+          <Wordmark size="sm" />
           <Text variant="headline" tone="muted" weight="medium">
             Find unforgettable stays for every kind of trip.
           </Text>
@@ -128,6 +132,7 @@ export default function DesignSystem() {
             From mountain cabins to oceanfront villas, roam helps you find unforgettable stays for every kind of
             trip.
           </Text>
+          <Text variant="lead" tone="muted">Lead: tight intro copy under a hero title.</Text>
           <Text variant="caption">Lake Arrowhead, CA</Text>
           <Text variant="button">Book this stay</Text>
           <Text variant="small" tone="muted">
@@ -137,8 +142,8 @@ export default function DesignSystem() {
 
         <Section n="04" title="Buttons">
           <Button title="Book this stay" />
-          {/* placeholder: Google logo asset missing */}
-          <Button variant="secondary" title="Continue with Google" icon={Globe} />
+          <Button variant="secondary" title="Continue with Google" leading={<GoogleLogo />} />
+          <Button variant="secondary" title="Continue with Apple" leading={<AppleLogo />} />
           <Button title="Booking…" loading />
           <Button title="Unavailable" disabled />
           <View className="flex-row gap-4">
@@ -146,6 +151,7 @@ export default function DesignSystem() {
             <IconButton icon={Share} accessibilityLabel="Share" />
             <IconButton icon={Search} accessibilityLabel="Search" />
             <IconButton icon={Bookmark} accessibilityLabel="Bookmark" variant="surface" />
+            <IconButton icon={ChevronLeft} accessibilityLabel="Back" variant="outline" size="sm" />
           </View>
         </Section>
 
@@ -158,6 +164,10 @@ export default function DesignSystem() {
           <Input icon={User} placeholder="Enter your name" />
           <Input icon={User} value={name} onChangeText={setName} placeholder="Enter your name" />
           <Input icon={Lock} secure defaultValue="password1" placeholder="Password" />
+          <Input icon={Mail} label="Email address" placeholder="you@example.com" />
+          <Text variant="caption" tone="muted">
+            Link: <Text variant="caption" weight="semibold" underline>Sign in</Text>
+          </Text>
         </Section>
 
         <Section n="06" title="Filter chips">

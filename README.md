@@ -13,6 +13,8 @@
 
   <h3 align="center">Roam</h3>
   <p align="center">An Airbnb-style app where you search for stays in plain English</p>
+
+  <img src="assets/screenshots/onboarding.png" alt="Roam onboarding screen: a lakeside cabin photo with the title Find a stay that fits your story" width="280" />
 </div>
 
 ## About

@@ -5,6 +5,7 @@ const variants = {
   title: "text-title font-extrabold",
   headline: "text-headline font-bold",
   body: "text-body font-regular",
+  lead: "text-lead font-regular",
   button: "text-button font-semibold",
   caption: "text-caption font-medium",
   small: "text-small font-medium",
@@ -34,11 +35,12 @@ export type TextProps = RNTextProps & {
   tone?: keyof typeof tones;
   /** Overrides the variant's family; set it instead of a `font-*` class */
   weight?: keyof typeof weights;
+  underline?: boolean;
   /** Layout only (margins, flex). Use variant/tone/weight for type and color */
   className?: string;
 };
 
-export function Text({ variant = "body", tone = "ink", weight, className, ...props }: TextProps) {
+export function Text({ variant = "body", tone = "ink", weight, underline, className, ...props }: TextProps) {
   const type = weight ? variants[variant].replace(/font-\w+/, weights[weight]) : variants[variant];
-  return <RNText className={`${type} ${tones[tone]} ${className ?? ""}`} {...props} />;
+  return <RNText className={`${type} ${tones[tone]} ${underline ? "underline" : ""} ${className ?? ""}`} {...props} />;
 }
