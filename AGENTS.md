@@ -20,7 +20,7 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 
 - Expo ships breaking changes every SDK release, so don't trust memory. Before touching an Expo, EAS, or React Native API, check the `expo` major version in `package.json` and read `https://docs.expo.dev/versions/v<major>.0.0/`. For anything else, start from https://docs.expo.dev/llms.txt and follow its links.
 - Routes live in `src/app/`: every file is a screen and `_layout.tsx` files define navigators. API routes are `src/app/api/*+api.ts`. Keep components, hooks, and utils outside `src/app/`.
-- Screens: `index` is onboarding (shown on every launch until auth adds gating). `sign-up` → `verify` → `home`, and `sign-in` → `home`; success calls `enterApp()` so Back can't return into auth. Auth is mocked in `src/lib/mock-auth.ts` (verify code `424242`) until Clerk replaces that one module. `home` is a stub. Root `Stack` hides headers; a screen that wants one sets `headerShown: true`.
+- Screens: `index` is onboarding (every signed-out launch). `sign-up` → `verify` → `home`, and `sign-in` → `home` (via `verify?flow=sign-in` when Clerk asks for a new-device code). The root layout guards routes with `Stack.Protected` on Clerk's `useAuth()`: `home` is signed-in only, onboarding and auth screens are signed-out only, and the guard flip does the navigation after sign-in and sign-out (never `router.replace` into `home`). The splash stays up until fonts and Clerk are loaded. `home` is a stub. Root `Stack` hides headers; a screen that wants one sets `headerShown: true`.
 - `ios/` and `android/` are generated. Never create or edit them by hand; configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, switch to a development build (`npx expo run:ios`).
 
@@ -28,7 +28,7 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 
 Each tool has one job. Ask before moving a responsibility to a different tool.
 
-- **Auth:** Clerk is the source of truth. The app keeps its own custom auth screens. Set Clerk up through the Clerk CLI and use the Clerk MCP for current Expo patterns.
+- **Auth:** Clerk is the source of truth (`@clerk/expo` custom flows on our own screens, session in `tokenCache` via `expo-secure-store`). Use the method-based API (`signUp.password`, `verifications.verifyEmailCode`, `finalize`), never `@clerk/expo/legacy`. Google and Apple use `useSSO` (browser flow, works in Expo Go). Clerk errors are shown through `authMessage` in `src/lib/auth.ts`. The app is "Roam" in the user's own workspace, linked with the Clerk CLI; the Clerk MCP is signed into a different workspace and can't see it, so change instance config with `npx clerk@latest config patch` (dry run first). Password `min_length` 8 matches `validate.ts`; change both together.
 - **Content:** Sanity (properties, hosts, policies, house rules). Studio is a standalone app in `studio/`. Schema deploys and content changes go through the Sanity MCP, and generated property copy uses Agent Actions.
 - **Exact constraints** (price, guests, type, amenities, pets, place): GROQ filters, with values always passed as params.
 - **Soft intent** (quiet, cozy, secluded): Dataset Embeddings via `text::semanticSimilarity()` inside `score()`.

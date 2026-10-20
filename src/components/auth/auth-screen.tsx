@@ -6,12 +6,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { IconButton, Text, Wordmark } from "@/components/ui";
 
-// Clears the auth screens off the stack so Back can't return into them
-export function enterApp() {
-  if (router.canDismiss()) router.dismissAll();
-  router.replace("/home");
-}
-
 export type AuthScreenProps = {
   title: string;
   subtitle: string;
@@ -41,6 +35,8 @@ export function AuthScreen({ title, subtitle, children, footer }: AuthScreenProp
         {subtitle}
       </Text>
       {children}
+      {/* Clerk's bot protection mounts here when captcha is on; social on sign-in can create a sign-up too */}
+      <View nativeID="clerk-captcha" />
       {footer && <View className="flex-grow justify-end pt-8">{footer}</View>}
     </ScrollView>
   );

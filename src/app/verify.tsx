@@ -1,16 +1,19 @@
+import { useSignIn, useSignUp } from "@clerk/expo";
 import { useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
-import { AuthScreen, enterApp } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { TextLink } from "@/components/auth/text-link";
 import { Alert, Button, Text } from "@/components/ui";
-import * as mockAuth from "@/lib/mock-auth";
+import { authMessage } from "@/lib/auth";
 
 const LENGTH = 6;
 
 export default function Verify() {
-  const { email = "" } = useLocalSearchParams<{ email?: string }>();
+  const { email = "", flow = "sign-up" } = useLocalSearchParams<{ email?: string; flow?: "sign-up" | "sign-in" }>();
+  const { signUp } = useSignUp();
+  const { signIn } = useSignIn();
   const [code, setCode] = useState("");
   const [focused, setFocused] = useState(true);
   const [notice, setNotice] = useState<{ tone: "success" | "danger"; message: string } | null>(null);
@@ -22,11 +25,18 @@ export default function Verify() {
     if (value.length !== LENGTH) return setNotice({ tone: "danger", message: `Enter the ${LENGTH}-digit code.` });
     setLoading(true);
     try {
-      await mockAuth.verify(value);
-      enterApp();
+      // Sign-up verifies the new email; sign-in uses the same code step for Clerk's new-device check
+      const attempt = flow === "sign-in" ? signIn : signUp;
+      const { error } =
+        flow === "sign-in" ? await signIn.mfa.verifyEmailCode({ code: value }) : await signUp.verifications.verifyEmailCode({ code: value });
+      if (error) throw error;
+      if (attempt.status !== "complete") throw new Error("We couldn't finish signing you in. Contact support.");
+      // The root layout's guard moves to home once the session is active
+      const finalized = await attempt.finalize();
+      if (finalized.error) throw finalized.error;
     } catch (e) {
       setCode("");
-      setNotice({ tone: "danger", message: e instanceof Error ? e.message : "Something went wrong. Try again." });
+      setNotice({ tone: "danger", message: authMessage(e) });
     } finally {
       setLoading(false);
     }
@@ -44,9 +54,12 @@ export default function Verify() {
   const resend = async () => {
     setResending(true);
     try {
-      await mockAuth.resend(email);
+      const { error } = flow === "sign-in" ? await signIn.mfa.sendEmailCode() : await signUp.verifications.sendEmailCode();
+      if (error) throw error;
       setCode("");
       setNotice({ tone: "success", message: "We sent a new code." });
+    } catch (e) {
+      setNotice({ tone: "danger", message: authMessage(e) });
     } finally {
       setResending(false);
     }

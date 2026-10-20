@@ -1,16 +1,18 @@
+import { useSignIn } from "@clerk/expo";
 import { router } from "expo-router";
 import { Lock, Mail } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { View, type TextInput } from "react-native";
 
-import { AuthScreen, enterApp } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { SocialButtons } from "@/components/auth/social-buttons";
 import { TextLink } from "@/components/auth/text-link";
 import { Alert, Button, Input } from "@/components/ui";
-import * as mockAuth from "@/lib/mock-auth";
+import { authMessage } from "@/lib/auth";
 import { validate } from "@/lib/validate";
 
 export default function SignIn() {
+  const { signIn } = useSignIn();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,10 +28,23 @@ export default function SignIn() {
     if (problem) return setError(problem);
     setLoading(true);
     try {
-      await mockAuth.signIn(form);
-      enterApp();
+      const email = form.email.trim();
+      const { error: signInError } = await signIn.password({ emailAddress: email, password: form.password });
+      if (signInError) return setError(authMessage(signInError));
+      if (signIn.status === "complete") {
+        // The root layout's guard moves to home once the session is active
+        const { error: finalizeError } = await signIn.finalize();
+        if (finalizeError) setError(authMessage(finalizeError));
+      } else if (signIn.status === "needs_client_trust") {
+        // New device: Clerk wants an emailed code before trusting it
+        const { error: sendError } = await signIn.mfa.sendEmailCode();
+        if (sendError) return setError(authMessage(sendError));
+        router.push({ pathname: "/verify", params: { email, flow: "sign-in" } });
+      } else {
+        setError("We couldn't finish signing you in. Contact support.");
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+      setError(authMessage(e));
     } finally {
       setLoading(false);
     }
@@ -73,7 +88,7 @@ export default function SignIn() {
       </View>
       {error && <Alert tone="danger" message={error} className="mt-6" />}
       <Button title="Sign in" loading={loading} onPress={submit} className="mt-6" />
-      <SocialButtons onSuccess={enterApp} disabled={loading} />
+      <SocialButtons onError={setError} disabled={loading} />
     </AuthScreen>
   );
 }

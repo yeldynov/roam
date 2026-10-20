@@ -1,16 +1,18 @@
+import { useSignUp } from "@clerk/expo";
 import { router } from "expo-router";
 import { Lock, Mail, User } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { View, type TextInput } from "react-native";
 
-import { AuthScreen, enterApp } from "@/components/auth/auth-screen";
+import { AuthScreen } from "@/components/auth/auth-screen";
 import { SocialButtons } from "@/components/auth/social-buttons";
 import { TextLink } from "@/components/auth/text-link";
 import { Alert, Button, Input } from "@/components/ui";
-import * as mockAuth from "@/lib/mock-auth";
+import { authMessage } from "@/lib/auth";
 import { validate } from "@/lib/validate";
 
 export default function SignUp() {
+  const { signUp } = useSignUp();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,10 +29,20 @@ export default function SignUp() {
     if (problem) return setError(problem);
     setLoading(true);
     try {
-      await mockAuth.signUp(form);
-      router.push({ pathname: "/verify", params: { email: form.email.trim() } });
+      const email = form.email.trim();
+      const [firstName, ...rest] = form.name.trim().split(/\s+/);
+      const created = await signUp.password({
+        emailAddress: email,
+        password: form.password,
+        firstName,
+        lastName: rest.join(" ") || undefined,
+      });
+      if (created.error) return setError(authMessage(created.error));
+      const sent = await signUp.verifications.sendEmailCode();
+      if (sent.error) return setError(authMessage(sent.error));
+      router.push({ pathname: "/verify", params: { email, flow: "sign-up" } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+      setError(authMessage(e));
     } finally {
       setLoading(false);
     }
@@ -87,7 +99,7 @@ export default function SignUp() {
       </View>
       {error && <Alert tone="danger" message={error} className="mt-6" />}
       <Button title="Create account" loading={loading} onPress={submit} className="mt-6" />
-      <SocialButtons onSuccess={enterApp} disabled={loading} />
+      <SocialButtons onError={setError} disabled={loading} />
     </AuthScreen>
   );
 }

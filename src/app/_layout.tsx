@@ -1,8 +1,14 @@
+import { ClerkProvider, useAuth } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import "@/global.css";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+
+if (!publishableKey) throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in .env.local");
 
 SplashScreen.preventAutoHideAsync();
 
@@ -15,14 +21,37 @@ export default function RootLayout() {
     "PlusJakartaSans-ExtraBold": require("@/assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
   });
 
-  useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
+  return (
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      {/* A font error falls back to the system font rather than a blank app */}
+      <RootStack fontsReady={loaded || !!error} />
+    </ClerkProvider>
+  );
+}
 
-  // A font error falls back to the system font rather than a blank app
-  if (!loaded && !error) return null;
+// Guard flips do the navigation: signing in drops the auth screens from history and lands on home, signing out lands on onboarding
+function RootStack({ fontsReady }: { fontsReady: boolean }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const ready = fontsReady && isLoaded;
+
+  // The splash covers session restore, so a signed-in launch never flashes onboarding
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!!isSignedIn}>
+        <Stack.Screen name="home" />
+      </Stack.Protected>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="sign-up" />
+        <Stack.Screen name="sign-in" />
+        <Stack.Screen name="verify" />
+      </Stack.Protected>
+    </Stack>
   );
 }
