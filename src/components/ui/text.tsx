@@ -1,6 +1,7 @@
 import { Text as RNText, type TextProps as RNTextProps } from "react-native";
 
 const variants = {
+  hero: "text-hero font-extrabold",
   display: "text-display font-extrabold",
   title: "text-title font-extrabold",
   headline: "text-headline font-bold",

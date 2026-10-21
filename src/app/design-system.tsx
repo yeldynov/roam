@@ -43,6 +43,7 @@ import {
   Input,
   ListingCard,
   ListRow,
+  PressableScale,
   SegmentedControl,
   Stepper,
   TabBar,
@@ -126,6 +127,7 @@ export default function DesignSystem() {
         </Section>
 
         <Section n="03" title="Typography">
+          <Text variant="hero">Find your next stay</Text>
           <Text variant="display">Find your next stay</Text>
           <Text variant="title">Modern Cabin with Hot Tub</Text>
           <Text variant="body" tone="muted">
@@ -297,6 +299,16 @@ export default function DesignSystem() {
             <Badge tone="success" label="New" />
             <Badge tone="danger" label="20% off" />
             <Badge tone="info" label="Superhost" />
+          </View>
+        </Section>
+
+        <Section n="16" title="Press feedback">
+          <PressableScale accessibilityRole="button" className="h-13 items-center justify-center rounded-full bg-lavender">
+            <Text variant="button">Press and hold</Text>
+          </PressableScale>
+          <View className="flex-row flex-wrap gap-2">
+            <Chip size="soft" tone="primary" label="All Stays" icon={House} selected />
+            <Chip size="soft" tone="primary" label="Cabins" icon={TreePine} />
           </View>
         </Section>
       </ScrollView>

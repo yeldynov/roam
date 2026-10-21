@@ -55,6 +55,9 @@
   /* Line heights are unitless ratios: native reads a bare number as a multiple of
      font size and drops px, so "22px" became 22 x 18 = 396pt. Comments give pt. */
   --text-*: initial;
+  --text-hero: 46px; /* Home title */
+  --text-hero--line-height: 1; /* 46 */
+  --text-hero--letter-spacing: -1.38px; /* -3% */
   --text-display: 40px;
   --text-display--line-height: 1; /* 40 */
   --text-display--letter-spacing: -1.2px; /* -3% */

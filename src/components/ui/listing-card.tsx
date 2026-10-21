@@ -1,10 +1,13 @@
 import { Image } from "expo-image";
 import { Heart, MapPin, Star, type LucideIcon } from "lucide-react-native";
 import { styled } from "nativewind";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { Badge } from "./badge";
 import { Icon } from "./icon";
+import { pressScale } from "./pressable-scale";
 import { Text } from "./text";
 
 const StyledImage = styled(Image, { className: "style" });
@@ -26,14 +29,21 @@ export type ListingCardProps = {
 };
 
 export function ListingCard({ image, title, location, rating, reviews, amenities, price, saved, onToggleSave, onPress, className }: ListingCardProps) {
+  const [pressed, setPressed] = useState(false);
   return (
     // The save button overlays the card as a sibling: nested buttons are invalid on web and for screen readers
     <View className={className}>
+    <Animated.View style={pressScale(pressed)}>
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${location}, $${price} per night`}
       onPress={onPress}
-      className="flex-row gap-4 rounded-lg bg-surface p-3 shadow-card active:opacity-70"
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      // A scroll that starts on the card shouldn't flash the press
+      unstable_pressDelay={80}
+      pressRetentionOffset={16}
+      className="flex-row gap-4 rounded-lg bg-surface p-3 shadow-card"
     >
       <StyledImage source={image} contentFit="cover" className="size-40 rounded-md" />
       <View className="flex-1 justify-center gap-2">
@@ -77,6 +87,7 @@ export function ListingCard({ image, title, location, rating, reviews, amenities
     >
       <Icon icon={Heart} size="sm" filled={saved} className={saved ? "text-danger" : "text-ink"} />
     </Pressable>
+    </Animated.View>
     </View>
   );
 }

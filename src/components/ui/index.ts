@@ -11,6 +11,7 @@ export * from "./stepper";
 export * from "./text";
 export * from "./toggle";
 export * from "./list-row";
+export * from "./pressable-scale";
 export * from "./listing-card";
 export * from "./tab-bar";
 export * from "./wordmark";

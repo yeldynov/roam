@@ -14,7 +14,9 @@
   <h3 align="center">Roam</h3>
   <p align="center">An Airbnb-style app where you search for stays in plain English</p>
 
-  <img src="assets/screenshots/onboarding.png" alt="Roam onboarding screen: a lakeside cabin photo with the title Find a stay that fits your story" width="280" />
+  <img src="assets/screenshots/onboarding.png" alt="Roam onboarding screen: a lakeside cabin photo with the title Find a stay that fits your story" width="260" />
+  <img src="assets/screenshots/home.png" alt="Roam home screen: the title Find your next stay, a one-sentence search field, category chips with Cabins selected, and a featured cabin card" width="260" />
+  <img src="assets/screenshots/search.png" alt="Roam search screen: the query cabin returns 3 stays, listed as cards with photo, rating, amenities and nightly price" width="260" />
 </div>
 
 ## About
