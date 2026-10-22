@@ -181,6 +181,7 @@ export default function Search() {
                   price={s.nightlyPrice}
                   amenities={cardBadges(s, [...filters.amenities, ...(filters.pets ? ["pets"] : [])])}
                   saved={isSaved}
+                  onPress={() => router.push({ pathname: "/stay/[id]", params: { id: s.id, from: "search" } })}
                   onToggleSave={() => {
                     posthog?.capture(isSaved ? "stay_unsaved" : "stay_saved", { stay_id: s.id });
                     setSaved((prev) => {

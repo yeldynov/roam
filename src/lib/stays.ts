@@ -67,6 +67,88 @@ export function useStays() {
   };
 }
 
+/** Everything the stay details screen shows. Long text is blank-line paragraphs, shown word for word */
+export type StayDetails = {
+  id: string;
+  title: string;
+  location: { city: string; region: string };
+  rating: number;
+  reviewCount: number;
+  nightlyPrice: number;
+  amenities: string[];
+  petsAllowed: boolean;
+  propertyType: string;
+  setting: string;
+  maxGuests: number;
+  bedrooms: number;
+  beds: number;
+  bathrooms: number;
+  /** HH:MM */
+  checkInTime: string;
+  checkOutTime: string;
+  houseRules: string[] | null;
+  description: string;
+  photos: { url: string; alt: string }[];
+  host: { name: string; bio: string | null; photo: string | null };
+  cancellationPolicy: { title: string; summary: string | null; freeCancellationHours: number; body: string };
+  /** Roam's policies for every stay (all kinds except cancellation) */
+  policies: { title: string; body: string }[];
+};
+
+const STAY_QUERY = `*[_type == "property" && _id == $id][0]{
+  "id": _id,
+  title,
+  location{ city, region },
+  rating,
+  reviewCount,
+  nightlyPrice,
+  "amenities": coalesce(amenities, []),
+  petsAllowed,
+  propertyType,
+  setting,
+  maxGuests,
+  bedrooms,
+  beds,
+  bathrooms,
+  checkInTime,
+  checkOutTime,
+  houseRules,
+  description,
+  "photos": photos[defined(asset)]{ "url": asset->url, alt },
+  host->{ name, bio, "photo": photo.asset->url },
+  cancellationPolicy->{ title, summary, freeCancellationHours, body },
+  "policies": *[_type == "policy" && kind != "cancellation"] | order(title asc){ title, body }
+}`;
+
+/** One stay with its host and policies; `stay` is null when it doesn't exist (or isn't published) */
+export function useStay(id: string) {
+  const [state, setState] = useState<{ stay?: StayDetails | null; error?: Error }>({});
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    sanityFetch<StayDetails | null>(STAY_QUERY, { id }, controller.signal).then(
+      (stay) => setState({ stay }),
+      (error: Error) => {
+        if (controller.signal.aborted) return;
+        posthogLogger.error("stay load failed", { source: "sanity_cdn", error_name: error.name });
+        setState({ error });
+      },
+    );
+    return () => controller.abort();
+  }, [id, attempt]);
+
+  return {
+    stay: state.stay,
+    error: state.error,
+    loading: state.stay === undefined && !state.error,
+    retry: () => {
+      setState({});
+      setAttempt((n) => n + 1);
+    },
+  };
+}
+
 let metaPromise: Promise<SearchMeta> | undefined;
 
 /** Places and free-cancellation policy IDs, fetched once per session (a failure is retried next time) */

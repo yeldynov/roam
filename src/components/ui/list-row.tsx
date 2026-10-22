@@ -30,11 +30,9 @@ export function ListRow({ icon, title, subtitle, variant = "plain", className, .
         <Icon icon={icon} size="lg" />
       )}
       <View className="flex-1 gap-1">
-        <Text variant="caption" weight={policy ? "semibold" : "medium"}>
-          {title}
-        </Text>
+        <Text variant={policy ? "headline" : "caption"}>{title}</Text>
         {subtitle && (
-          <Text variant="small" tone="muted" weight="regular">
+          <Text variant={policy ? "caption" : "small"} tone="muted" weight="regular">
             {subtitle}
           </Text>
         )}

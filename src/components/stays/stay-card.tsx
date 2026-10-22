@@ -9,7 +9,7 @@ import type { StaySummary } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
 
-// Featured stay on Home. Not pressable until the stay detail plan; the › button is decorative
+// Featured stay on Home. Home wraps it in the PressableScale that opens the stay; the › is part of that press
 export function StayCard({ stay }: { stay: StaySummary }) {
   return (
     <View

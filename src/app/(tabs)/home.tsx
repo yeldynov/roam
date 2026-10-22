@@ -126,8 +126,12 @@ export default function Home() {
       <View className="mt-6 gap-5">
         {stays.map((s) => (
           <Reflow key={s.id}>
-            {/* Press feedback only: cards open nothing until the stay detail plan. accessible={false} keeps the card's own label */}
-            <PressableScale accessible={false} unstable_pressDelay={80}>
+            {/* accessible={false} keeps the card's own label */}
+            <PressableScale
+              accessible={false}
+              unstable_pressDelay={80}
+              onPress={() => router.push({ pathname: "/stay/[id]", params: { id: s.id, from: "home" } })}
+            >
               <StayCard stay={s} />
             </PressableScale>
           </Reflow>
