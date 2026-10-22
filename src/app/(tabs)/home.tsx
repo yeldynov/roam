@@ -10,25 +10,28 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Reflow } from "@/components/stays/reflow";
 import { SearchField } from "@/components/stays/search-field";
 import { StayCard } from "@/components/stays/stay-card";
-import { Chip, Icon, PressableScale, Text, Wordmark } from "@/components/ui";
-import { PROPERTIES, type Category } from "@/data/properties";
+import { Alert, Button, Chip, Icon, PressableScale, Text, Wordmark } from "@/components/ui";
+import { useStays, type StaySummary } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
 
-const CATEGORIES: { key: Category | "all"; label: string; icon: typeof House }[] = [
-  { key: "all", label: "All Stays", icon: House },
-  { key: "cabin", label: "Cabins", icon: TreePine },
-  { key: "beach", label: "Beach", icon: WavesHorizontal },
-  { key: "city", label: "City", icon: Building },
-  { key: "villa", label: "Villas", icon: TreePalm },
+// Chips mix kinds of stay: Cabins and Villas are property types, Beach and City are settings
+const CATEGORIES: { key: string; label: string; icon: typeof House; match: (s: StaySummary) => boolean }[] = [
+  { key: "all", label: "All Stays", icon: House, match: () => true },
+  { key: "cabin", label: "Cabins", icon: TreePine, match: (s) => s.propertyType === "cabin" },
+  { key: "beach", label: "Beach", icon: WavesHorizontal, match: (s) => s.setting === "beach" },
+  { key: "city", label: "City", icon: Building, match: (s) => s.setting === "city" },
+  { key: "villa", label: "Villas", icon: TreePalm, match: (s) => s.propertyType === "villa" },
 ];
 
 export default function Home() {
   const insets = useSafeAreaInsets();
   const { user } = useUser();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<Category | "all">("all");
-  const stays = category === "all" ? PROPERTIES : PROPERTIES.filter((s) => s.category === category);
+  const [categoryKey, setCategoryKey] = useState("all");
+  const category = CATEGORIES.find((c) => c.key === categoryKey) ?? CATEGORIES[0];
+  const { stays: allStays, error, loading, retry } = useStays();
+  const stays = allStays?.filter(category.match) ?? [];
 
   const submit = () => {
     const q = query.trim();
@@ -86,11 +89,32 @@ export default function Home() {
             tone="primary"
             label={c.label}
             icon={c.icon}
-            selected={category === c.key}
-            onPress={() => setCategory(c.key)}
+            selected={categoryKey === c.key}
+            onPress={() => setCategoryKey(c.key)}
           />
         ))}
       </View>
+
+      {loading && (
+        <View accessible accessibilityLabel="Loading stays" className="mt-6 gap-5">
+          {[0, 1, 2].map((i) => (
+            <View key={i} className="h-67 rounded-xl bg-canvas" />
+          ))}
+        </View>
+      )}
+
+      {error && (
+        <View className="mt-6 gap-4">
+          <Alert tone="danger" message="Couldn't load stays. Check your connection and try again." />
+          <Button variant="secondary" title="Try again" icon={null} onPress={retry} />
+        </View>
+      )}
+
+      {allStays && stays.length === 0 && (
+        <Text tone="muted" className="mt-12 text-center">
+          No {category.label.toLowerCase()} yet
+        </Text>
+      )}
 
       <View className="mt-6 gap-5">
         {stays.map((s) => (

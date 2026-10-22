@@ -4,19 +4,20 @@ import { styled } from "nativewind";
 import { View } from "react-native";
 
 import { Icon, Text } from "@/components/ui";
-import type { Property } from "@/data/properties";
+import { imageUrl } from "@/lib/sanity";
+import type { StaySummary } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
 
 // Featured stay on Home. Not pressable until the stay detail plan; the › button is decorative
-export function StayCard({ stay }: { stay: Property }) {
+export function StayCard({ stay }: { stay: StaySummary }) {
   return (
     <View
       accessible
       accessibilityLabel={`${stay.title}, ${stay.location}, rated ${stay.rating.toFixed(1)}`}
       className="h-67 overflow-hidden rounded-xl bg-canvas"
     >
-      <StyledImage source={stay.image} contentFit="cover" transition={200} className="absolute inset-0" />
+      <StyledImage source={imageUrl(stay.image, 1200)} contentFit="cover" transition={200} className="absolute inset-0" />
       <View className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-scrim to-transparent" />
       <View className="absolute right-3 top-3 h-10 flex-row items-center gap-1 rounded-full bg-white px-3">
         <Icon icon={Star} size="md" filled />
