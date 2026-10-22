@@ -10,6 +10,7 @@ const variants = {
   button: "text-button font-semibold",
   caption: "text-caption font-medium",
   small: "text-small font-medium",
+  tiny: "text-tiny font-medium",
 } as const;
 
 const tones = {

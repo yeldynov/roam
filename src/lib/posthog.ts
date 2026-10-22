@@ -36,6 +36,8 @@ export const posthog = projectToken && host
           unhandledRejections: true,
         },
       },
-      debug: __DEV__,
     })
   : undefined;
+
+// The client takes debug as a call, not an option
+posthog?.debug(__DEV__);

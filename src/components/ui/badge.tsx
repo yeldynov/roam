@@ -13,8 +13,9 @@ const tones = {
 } as const satisfies Record<string, { bg: string; text: TextProps["tone"]; icon: string }>;
 
 const sizes = {
-  md: "h-10 px-5 rounded-full",
-  sm: "h-8 px-3 rounded-sm",
+  md: { base: "h-10 gap-2 px-5 rounded-full", text: "caption" },
+  // Listing card amenities: two fit across the card's text column
+  sm: { base: "h-7 gap-1 px-2 rounded-full", text: "tiny" },
 } as const;
 
 export type BadgeProps = {
@@ -29,9 +30,9 @@ export type BadgeProps = {
 export function Badge({ label, icon, tone = "neutral", size = "md", className }: BadgeProps) {
   const t = tones[tone];
   return (
-    <View className={`flex-row items-center gap-2 self-start ${sizes[size]} ${t.bg} ${className ?? ""}`}>
+    <View className={`flex-row items-center self-start ${sizes[size].base} ${t.bg} ${className ?? ""}`}>
       {icon && <Icon icon={icon} size="sm" className={t.icon} filled={tone === "primary"} />}
-      <Text variant="caption" tone={t.text}>
+      <Text variant={sizes[size].text} tone={t.text}>
         {label}
       </Text>
     </View>
