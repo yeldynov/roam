@@ -52,7 +52,8 @@ export function Input({ icon, label, trailing, secure, className, onFocus, onBlu
           {field}
         </View>
       ) : (
-        field
+        // The lineHeight style drops the TextInput's flex-1, so a wrapper takes the width
+        <View className="flex-1">{field}</View>
       )}
       {secure && (
         <Pressable

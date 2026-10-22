@@ -71,7 +71,7 @@ function Details({ stay }: { stay: StayDetails }) {
   const insets = useSafeAreaInsets();
   const [photo, setPhoto] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [sheet, setSheet] = useState<"policies" | "cancellation" | "host" | null>(null);
+  const [sheet, setSheet] = useState<"cancellation" | "host" | null>(null);
   const location = `${stay.location.city}, ${stay.location.region}`;
   const policy = stay.cancellationPolicy;
   const features = [...cardBadges(stay, [], 3), SETTING_BADGES[stay.setting]].filter(Boolean);
@@ -156,7 +156,7 @@ function Details({ stay }: { stay: StayDetails }) {
               icon={MessagesSquare}
               title="Ask about policies"
               subtitle="Cancellation, house rules, pets, check-in and more."
-              onPress={() => setSheet("policies")}
+              onPress={() => router.push({ pathname: "/stay/[id]/ask", params: { id: stay.id } })}
             />
             <ListRow
               variant="policy"
@@ -220,28 +220,6 @@ function Details({ stay }: { stay: StayDetails }) {
         </Pressable>
       </TopBar>
 
-      <InfoSheet visible={sheet === "policies"} title="Policies" onClose={() => setSheet(null)}>
-        <Text variant="headline">Check-in and check-out</Text>
-        <Text>
-          Check-in after {stay.checkInTime} · Check-out before {stay.checkOutTime}
-        </Text>
-        {!!stay.houseRules?.length && (
-          <>
-            <Text variant="headline" className="mt-2">
-              House rules
-            </Text>
-            {stay.houseRules.map((rule) => (
-              <Text key={rule}>{rule}</Text>
-            ))}
-          </>
-        )}
-        {stay.policies.map((p) => (
-          <View key={p.title} className="mt-2 gap-4">
-            <Text variant="headline">{p.title}</Text>
-            <Paragraphs text={p.body} />
-          </View>
-        ))}
-      </InfoSheet>
       <InfoSheet visible={sheet === "cancellation"} title={policy.title} onClose={() => setSheet(null)}>
         <Paragraphs text={policy.body} />
       </InfoSheet>

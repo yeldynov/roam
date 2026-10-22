@@ -72,7 +72,8 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!isSignedIn}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="stay/[id]" />
+        <Stack.Screen name="stay/[id]/index" />
+        <Stack.Screen name="stay/[id]/ask" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="index" />

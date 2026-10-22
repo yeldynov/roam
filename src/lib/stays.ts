@@ -92,7 +92,7 @@ export type StayDetails = {
   host: { name: string; bio: string | null; photo: string | null };
   cancellationPolicy: { title: string; summary: string | null; freeCancellationHours: number; body: string };
   /** Roam's policies for every stay (all kinds except cancellation) */
-  policies: { title: string; body: string }[];
+  policies: { kind: string; title: string; body: string }[];
 };
 
 const STAY_QUERY = `*[_type == "property" && _id == $id][0]{
@@ -117,7 +117,7 @@ const STAY_QUERY = `*[_type == "property" && _id == $id][0]{
   "photos": photos[defined(asset)]{ "url": asset->url, alt },
   host->{ name, bio, "photo": photo.asset->url },
   cancellationPolicy->{ title, summary, freeCancellationHours, body },
-  "policies": *[_type == "policy" && kind != "cancellation"] | order(title asc){ title, body }
+  "policies": *[_type == "policy" && kind != "cancellation"] | order(title asc){ kind, title, body }
 }`;
 
 /** One stay with its host and policies; `stay` is null when it doesn't exist (or isn't published) */
