@@ -26,4 +26,5 @@
 *.tsbuildinfo
 
 # Dotenv and similar local-only files
+.env
 *.local

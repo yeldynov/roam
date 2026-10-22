@@ -9,6 +9,7 @@ import { Reflow } from "@/components/stays/reflow";
 import { SearchField } from "@/components/stays/search-field";
 import { Icon, ListingCard, Text } from "@/components/ui";
 import { PROPERTIES } from "@/data/properties";
+import { posthog } from "@/lib/posthog";
 import { searchStays } from "@/lib/search";
 
 export default function Search() {
@@ -27,6 +28,14 @@ export default function Search() {
   const trimmed = query.trim();
   const results = searchStays(trimmed, PROPERTIES);
 
+  const submitSearch = () => {
+    posthog?.capture("stay_search_refined", {
+      query_length: trimmed.length,
+      results_count: results.length,
+    });
+    Keyboard.dismiss();
+  };
+
   return (
     <ScrollView
       className="flex-1 bg-surface"
@@ -38,7 +47,7 @@ export default function Search() {
       keyboardDismissMode="on-drag"
     >
       <Text variant="title">Search</Text>
-      <SearchField value={query} onChangeText={setQuery} onSubmit={Keyboard.dismiss} className="mt-4" />
+      <SearchField value={query} onChangeText={setQuery} onSubmit={submitSearch} className="mt-4" />
 
       <Text variant="headline" className="mb-4 mt-6">
         {!trimmed ? "All stays" : results.length === 1 ? "1 stay" : `${results.length} stays`}
@@ -56,27 +65,35 @@ export default function Search() {
         </View>
       ) : (
         <View className="gap-4">
-          {results.map((s) => (
-            <Reflow key={s.id}>
-              <ListingCard
-                image={s.image}
-                title={s.title}
-                location={s.location}
-                rating={s.rating}
-                reviews={s.reviews}
-                price={s.price}
-                amenities={s.amenities.slice(0, 2).map((a) => ({ label: a, icon: AMENITY_ICONS[a] }))}
-                saved={saved.has(s.id)}
-                onToggleSave={() =>
-                  setSaved((prev) => {
-                    const next = new Set(prev);
-                    if (!next.delete(s.id)) next.add(s.id);
-                    return next;
-                  })
-                }
-              />
-            </Reflow>
-          ))}
+          {results.map((s) => {
+            const isSaved = saved.has(s.id);
+            return (
+              <Reflow key={s.id}>
+                <ListingCard
+                  image={s.image}
+                  title={s.title}
+                  location={s.location}
+                  rating={s.rating}
+                  reviews={s.reviews}
+                  price={s.price}
+                  amenities={s.amenities.slice(0, 2).map((a) => ({ label: a, icon: AMENITY_ICONS[a] }))}
+                  saved={isSaved}
+                  onToggleSave={() => {
+                    posthog?.capture(isSaved ? "stay_unsaved" : "stay_saved", {
+                      stay_id: s.id,
+                      property_type: s.propertyType,
+                      setting: s.setting,
+                    });
+                    setSaved((prev) => {
+                      const next = new Set(prev);
+                      if (!next.delete(s.id)) next.add(s.id);
+                      return next;
+                    });
+                  }}
+                />
+              </Reflow>
+            );
+          })}
         </View>
       )}
     </ScrollView>

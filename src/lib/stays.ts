@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { posthogLogger } from "@/lib/posthog-logger";
 import { sanityFetch } from "@/lib/sanity";
 
 /** What a stay card needs; the full stay is fetched by the stay details screen */
@@ -33,9 +34,21 @@ export function useStays() {
   useEffect(() => {
     const controller = new AbortController();
     sanityFetch<StaySummary[]>(STAYS_QUERY, {}, controller.signal).then(
-      (stays) => setState({ stays }),
+      (stays) => {
+        posthogLogger.info("stay catalog loaded", {
+          source: "sanity_cdn",
+          result_count: stays.length,
+        });
+        setState({ stays });
+      },
       (error: Error) => {
-        if (!controller.signal.aborted) setState({ error });
+        if (!controller.signal.aborted) {
+          posthogLogger.error("stay catalog load failed", {
+            source: "sanity_cdn",
+            error_name: error.name,
+          });
+          setState({ error });
+        }
       },
     );
     return () => controller.abort();
@@ -46,6 +59,7 @@ export function useStays() {
     error: state.error,
     loading: !state.stays && !state.error,
     retry: () => {
+      posthogLogger.info("stay catalog reload requested", { source: "sanity_cdn" });
       setState({});
       setAttempt((n) => n + 1);
     },

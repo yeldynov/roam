@@ -11,6 +11,7 @@ import { Reflow } from "@/components/stays/reflow";
 import { SearchField } from "@/components/stays/search-field";
 import { StayCard } from "@/components/stays/stay-card";
 import { Alert, Button, Chip, Icon, PressableScale, Text, Wordmark } from "@/components/ui";
+import { posthog } from "@/lib/posthog";
 import { useStays, type StaySummary } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
@@ -36,8 +37,14 @@ export default function Home() {
   const submit = () => {
     const q = query.trim();
     if (!q) return;
+    posthog?.capture("stay_search_submitted", { query_length: q.length });
     router.navigate({ pathname: "/search", params: { q } });
     setQuery("");
+  };
+
+  const selectCategory = (key: string) => {
+    setCategoryKey(key);
+    posthog?.capture("stay_category_selected", { category_key: key });
   };
 
   return (
@@ -90,7 +97,7 @@ export default function Home() {
             label={c.label}
             icon={c.icon}
             selected={categoryKey === c.key}
-            onPress={() => setCategoryKey(c.key)}
+            onPress={() => selectCategory(c.key)}
           />
         ))}
       </View>
