@@ -1,25 +1,21 @@
 import { useSignIn, useSignUp } from "@clerk/expo";
 import { useLocalSearchParams } from "expo-router";
-import { useRef, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { useState } from "react";
 
 import { AuthScreen } from "@/components/auth/auth-screen";
+import { CODE_LENGTH as LENGTH, CodeInput } from "@/components/auth/code-input";
 import { TextLink } from "@/components/auth/text-link";
-import { Alert, Button, Text } from "@/components/ui";
+import { Alert, Button } from "@/components/ui";
 import { authMessage } from "@/lib/auth";
-
-const LENGTH = 6;
 
 export default function Verify() {
   const { email = "", flow = "sign-up" } = useLocalSearchParams<{ email?: string; flow?: "sign-up" | "sign-in" }>();
   const { signUp } = useSignUp();
   const { signIn } = useSignIn();
   const [code, setCode] = useState("");
-  const [focused, setFocused] = useState(true);
   const [notice, setNotice] = useState<{ tone: "success" | "danger"; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const inputRef = useRef<TextInput>(null);
 
   const submit = async (value = code) => {
     if (value.length !== LENGTH) return setNotice({ tone: "danger", message: `Enter the ${LENGTH}-digit code.` });
@@ -67,35 +63,7 @@ export default function Verify() {
 
   return (
     <AuthScreen title="Check your email" subtitle={`We sent a ${LENGTH}-digit code to ${email}. Enter it below.`}>
-      {/* One hidden input drives the boxes, so paste and iOS one-time-code autofill fill all six */}
-      <Pressable accessible={false} onPress={() => inputRef.current?.focus()} className="mt-6 flex-row gap-2">
-        {Array.from({ length: LENGTH }, (_, i) => {
-          const active = focused && i === Math.min(code.length, LENGTH - 1);
-          return (
-            <View
-              key={i}
-              className={`h-14 flex-1 items-center justify-center rounded-md border ${active ? "border-lavender-ring bg-lavender-soft" : "border-canvas bg-canvas"}`}
-            >
-              <Text variant="title">{code[i] ?? ""}</Text>
-            </View>
-          );
-        })}
-      </Pressable>
-      <TextInput
-        ref={inputRef}
-        value={code}
-        onChangeText={change}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        autoFocus
-        keyboardType="number-pad"
-        textContentType="oneTimeCode"
-        autoComplete="one-time-code"
-        maxLength={LENGTH}
-        accessibilityLabel="Verification code"
-        caretHidden
-        className="absolute size-px opacity-0"
-      />
+      <CodeInput value={code} onChangeText={change} className="mt-6" />
       {notice && <Alert tone={notice.tone} message={notice.message} className="mt-6" />}
       <Button title="Verify" loading={loading} onPress={() => submit()} className="mt-6" />
       <TextLink prompt="Didn't get a code?" link="Resend" onPress={resend} disabled={resending} className="mt-6" />

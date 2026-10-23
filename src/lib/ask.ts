@@ -23,6 +23,8 @@ export type TopicId = (typeof TOPICS)[number]["id"];
 /** One answer, copied word for word from the stay or Roam's policies */
 export type AnswerCard = { source: string; title?: string; body: string };
 
+export const SUPPORT_EMAIL = "yeldynov@gmail.com";
+
 export const NO_ANSWER = "I couldn't find that in this stay's details or Roam's policies. Contact Roam support for help.";
 
 /** Every topic the text mentions, in TOPICS order */

@@ -67,6 +67,38 @@ export function useStays() {
   };
 }
 
+export type CancellationPolicy = { title: string; summary: string; body: string };
+
+const CANCELLATION_POLICIES_QUERY = `*[_type == "policy" && kind == "cancellation"] | order(freeCancellationHours desc){ title, summary, body }`;
+
+/** Roam's cancellation policies, most flexible first. Fetches once `enabled` turns true. */
+export function useCancellationPolicies(enabled: boolean) {
+  const [state, setState] = useState<{ policies?: CancellationPolicy[]; error?: Error }>({});
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    const controller = new AbortController();
+    sanityFetch<CancellationPolicy[]>(CANCELLATION_POLICIES_QUERY, {}, controller.signal).then(
+      (policies) => setState({ policies }),
+      (error: Error) => {
+        if (!controller.signal.aborted) setState({ error });
+      },
+    );
+    return () => controller.abort();
+  }, [enabled, attempt]);
+
+  return {
+    policies: state.policies,
+    error: state.error,
+    loading: !state.policies && !state.error,
+    retry: () => {
+      setState({});
+      setAttempt((n) => n + 1);
+    },
+  };
+}
+
 /** Everything the stay details screen shows. Long text is blank-line paragraphs, shown word for word */
 export type StayDetails = {
   id: string;

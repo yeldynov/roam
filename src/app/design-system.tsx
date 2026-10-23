@@ -23,6 +23,7 @@ import {
   SlidersHorizontal,
   Star,
   Tent,
+  Trash2,
   TreePalm,
   TreePine,
   User,
@@ -42,6 +43,7 @@ import {
   IconButton,
   Input,
   ListingCard,
+  ListGroup,
   ListRow,
   PressableScale,
   SegmentedControl,
@@ -233,6 +235,7 @@ export default function DesignSystem() {
             icon={FileText}
             title="Free cancellation"
             subtitle="Full refund up to 7 days before check-in."
+            iconTile={false}
           />
         </Section>
 
@@ -242,6 +245,11 @@ export default function DesignSystem() {
             <ListRow icon={CreditCard} title="Payment methods" className="border-b border-line" />
             <ListRow icon={Briefcase} title="Trips" />
           </View>
+          <ListGroup title="Account">
+            <ListRow variant="menu" icon={User} title="Personal info" />
+            <ListRow variant="menu" icon={CreditCard} title="Payment methods" />
+            <ListRow variant="menu" icon={Trash2} title="Delete account" tone="danger" />
+          </ListGroup>
         </Section>
 
         <Section n="10" title="Bottom navigation">

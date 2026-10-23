@@ -10,6 +10,7 @@ export * from "./segmented-control";
 export * from "./stepper";
 export * from "./text";
 export * from "./toggle";
+export * from "./list-group";
 export * from "./list-row";
 export * from "./pressable-scale";
 export * from "./listing-card";

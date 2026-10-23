@@ -74,6 +74,8 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="stay/[id]/index" />
         <Stack.Screen name="stay/[id]/ask" />
+        <Stack.Screen name="account/settings" />
+        <Stack.Screen name="account/personal-info" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="index" />
