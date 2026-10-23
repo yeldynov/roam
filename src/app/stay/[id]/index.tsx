@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { ChevronLeft, ChevronRight, FileText, Heart, MapPin, MessagesSquare, Share as ShareIcon, Star } from "lucide-react-native";
 import { styled } from "nativewind";
 import { useEffect, useState, type ReactNode } from "react";
-import { Alert as NativeAlert, Pressable, ScrollView, Share, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, Share, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cardBadges, SETTING_BADGES } from "@/components/stays/amenity-icons";
@@ -20,7 +20,7 @@ const StyledImage = styled(Image, { className: "style" });
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default function StayScreen() {
-  const { id, from } = useLocalSearchParams<{ id: string; from?: "home" | "search" | "saved" }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: "home" | "search" | "saved" | "trips" }>();
   const { stay, error, retry } = useStay(id);
 
   useEffect(() => {
@@ -198,7 +198,12 @@ function Details({ stay }: { stay: StayDetails }) {
           <Text variant="title">${stay.nightlyPrice}</Text>
           <Text>/ night</Text>
         </View>
-        <Button title="Book this stay" icon={null} className="flex-1" onPress={() => NativeAlert.alert("Coming soon", "Booking isn't available yet.")} />
+        <Button
+          title="Book this stay"
+          icon={null}
+          className="flex-1"
+          onPress={() => router.push({ pathname: "/stay/[id]/book", params: { id: stay.id } })}
+        />
       </View>
 
       <TopBar>

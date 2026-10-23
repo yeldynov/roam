@@ -1,7 +1,10 @@
 import { ClerkProvider, useAuth, useUser } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
+import { StripeProvider } from "@stripe/stripe-react-native";
 import "@/global.css";
+import Constants from "expo-constants";
 import { useFonts } from "expo-font";
+import * as Linking from "expo-linking";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { PostHogProvider } from "posthog-react-native";
@@ -11,6 +14,13 @@ import { posthog } from "@/lib/posthog";
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 
 if (!publishableKey) throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in .env.local");
+
+const stripeKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+
+if (!stripeKey) throw new Error("Missing EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY in .env.local");
+
+// Where 3D Secure and bank redirects return to; Expo Go needs the `/--/` form
+const stripeUrlScheme = Constants.appOwnership === "expo" ? Linking.createURL("/--/") : Linking.createURL("");
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,8 +35,10 @@ export default function RootLayout() {
 
   const app = (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      {/* A font error falls back to the system font rather than a blank app */}
-      <RootStack fontsReady={loaded || !!error} />
+      <StripeProvider publishableKey={stripeKey} urlScheme={stripeUrlScheme}>
+        {/* A font error falls back to the system font rather than a blank app */}
+        <RootStack fontsReady={loaded || !!error} />
+      </StripeProvider>
     </ClerkProvider>
   );
 
@@ -74,6 +86,7 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="stay/[id]/index" />
         <Stack.Screen name="stay/[id]/ask" />
+        <Stack.Screen name="stay/[id]/book" />
         <Stack.Screen name="account/settings" />
         <Stack.Screen name="account/personal-info" />
       </Stack.Protected>

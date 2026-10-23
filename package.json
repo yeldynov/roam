@@ -3,8 +3,10 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@clerk/backend": "^3.26.1",
     "@clerk/expo": "^4.13.0",
     "@expo/ui": "~57.0.25",
+    "@stripe/stripe-react-native": "0.64.0",
     "expo": "~57.0.30",
     "expo-auth-session": "~57.0.16",
     "expo-constants": "~57.0.22",
@@ -35,7 +37,8 @@
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
     "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.10.1"
+    "react-native-worklets": "0.10.1",
+    "stripe": "23.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.12",
