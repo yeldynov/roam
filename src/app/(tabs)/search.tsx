@@ -10,6 +10,7 @@ import { Reflow } from "@/components/stays/reflow";
 import { SortMenu } from "@/components/stays/sort-menu";
 import { Alert, Button, Chip, Icon, ListingCard, Text } from "@/components/ui";
 import { posthog } from "@/lib/posthog";
+import { useSaved } from "@/lib/saved";
 import { imageUrl } from "@/lib/sanity";
 import { clearFilters, emptyFilters, filterKinds, parseQuery, type Filters, type Sort } from "@/lib/search";
 import { useSearchMeta, useStaySearch } from "@/lib/stays";
@@ -32,7 +33,7 @@ export default function Search() {
   const [text, setText] = useState(q);
   const [lastQ, setLastQ] = useState(q);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const { isSaved, toggle } = useSaved();
   // `filters` is null until a chip or the sheet edits them; until then they're parsed from `submitted`.
   // `fromSheet` marks filters the chips and text don't show, which puts a dot on the sliders
   const [search, setSearch] = useState<{
@@ -168,9 +169,7 @@ export default function Search() {
         </View>
       ) : (
         <View className="mt-3 gap-4">
-          {stays.map((s) => {
-            const isSaved = saved.has(s.id);
-            return (
+          {stays.map((s) => (
               <Reflow key={s.id}>
                 <ListingCard
                   image={imageUrl(s.image, 400)}
@@ -180,20 +179,12 @@ export default function Search() {
                   reviews={s.reviewCount}
                   price={s.nightlyPrice}
                   amenities={cardBadges(s, [...filters.amenities, ...(filters.pets ? ["pets"] : [])])}
-                  saved={isSaved}
+                  saved={isSaved(s.id)}
                   onPress={() => router.push({ pathname: "/stay/[id]", params: { id: s.id, from: "search" } })}
-                  onToggleSave={() => {
-                    posthog?.capture(isSaved ? "stay_unsaved" : "stay_saved", { stay_id: s.id });
-                    setSaved((prev) => {
-                      const next = new Set(prev);
-                      if (!next.delete(s.id)) next.add(s.id);
-                      return next;
-                    });
-                  }}
+                  onToggleSave={() => toggle(s.id, "search")}
                 />
               </Reflow>
-            );
-          })}
+          ))}
         </View>
       )}
 

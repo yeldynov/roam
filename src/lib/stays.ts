@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 
 import { posthogLogger } from "@/lib/posthog-logger";
 import { sanityFetch } from "@/lib/sanity";
-import { buildSearchQuery, SEARCH_META_QUERY, type Filters, type SearchMeta, type SearchStay, type Sort } from "@/lib/search";
+import { buildSearchQuery, PROJECTION, SEARCH_META_QUERY, type Filters, type SearchMeta, type SearchStay, type Sort } from "@/lib/search";
 
 /** What a stay card needs; the full stay is fetched by the stay details screen */
 export type StaySummary = {
@@ -251,6 +251,40 @@ export function useStaySearch(filters: Filters, sort: Sort, meta: SearchMeta | n
     stays: current ? state.stays : undefined,
     error: current ? state.error : undefined,
     loading: !current,
+    retry: () => {
+      setState({});
+      setAttempt((n) => n + 1);
+    },
+  };
+}
+
+/** Cards for the saved stays, in the order of `ids`. Refetches only when the set of IDs changes; IDs with no published stay are skipped */
+export function useSavedStays(ids: string[]) {
+  const [state, setState] = useState<{ stays?: SearchStay[]; error?: Error }>({});
+  const [attempt, setAttempt] = useState(0);
+  const key = [...ids].sort().join(",");
+
+  useEffect(() => {
+    if (!key) return;
+    const controller = new AbortController();
+    sanityFetch<SearchStay[]>(`*[_type == "property" && _id in $ids]${PROJECTION}`, { ids: key.split(",") }, controller.signal).then(
+      (stays) => setState({ stays }),
+      (error: Error) => {
+        if (controller.signal.aborted) return;
+        posthogLogger.error("saved stays load failed", { source: "sanity_cdn", error_name: error.name });
+        setState({ error });
+      },
+    );
+    return () => controller.abort();
+  }, [key, attempt]);
+
+  // Unsaved stays leave at once; order follows `ids` (newest saved first)
+  const stays = key ? state.stays?.filter((s) => ids.includes(s.id)).sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id)) : [];
+  const error = key ? state.error : undefined;
+  return {
+    stays,
+    error,
+    loading: !stays && !error,
     retry: () => {
       setState({});
       setAttempt((n) => n + 1);

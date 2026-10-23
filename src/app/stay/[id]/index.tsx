@@ -12,6 +12,7 @@ import { InfoSheet, Paragraphs } from "@/components/stays/info-sheet";
 import { Alert, Button, Icon, IconButton, ListRow, Text } from "@/components/ui";
 import { posthog } from "@/lib/posthog";
 import { imageUrl } from "@/lib/sanity";
+import { useSaved } from "@/lib/saved";
 import { useStay, type StayDetails } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
@@ -19,7 +20,7 @@ const StyledImage = styled(Image, { className: "style" });
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default function StayScreen() {
-  const { id, from } = useLocalSearchParams<{ id: string; from?: "home" | "search" }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: "home" | "search" | "saved" }>();
   const { stay, error, retry } = useStay(id);
 
   useEffect(() => {
@@ -70,7 +71,8 @@ function Details({ stay }: { stay: StayDetails }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [photo, setPhoto] = useState(0);
-  const [saved, setSaved] = useState(false);
+  const { isSaved, toggle } = useSaved();
+  const saved = isSaved(stay.id);
   const [sheet, setSheet] = useState<"cancellation" | "host" | null>(null);
   const location = `${stay.location.city}, ${stay.location.region}`;
   const policy = stay.cancellationPolicy;
@@ -210,10 +212,7 @@ function Details({ stay }: { stay: StayDetails }) {
           accessibilityRole="button"
           accessibilityLabel={saved ? "Remove from saved" : "Save"}
           accessibilityState={{ selected: saved }}
-          onPress={() => {
-            posthog?.capture(saved ? "stay_unsaved" : "stay_saved", { stay_id: stay.id });
-            setSaved(!saved);
-          }}
+          onPress={() => toggle(stay.id, "stay")}
           className="size-14 items-center justify-center rounded-full bg-surface shadow-card active:opacity-70"
         >
           <Icon icon={Heart} size="lg" filled={saved} className={saved ? "text-danger" : "text-ink"} />

@@ -53,7 +53,7 @@ export type SearchStay = {
   image: string;
 };
 
-const PROJECTION = `{
+export const PROJECTION = `{
   "id": _id,
   title,
   "location": location.city + ", " + location.region,
