@@ -60,18 +60,14 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
       if (identifiedUserId.current === user.id) return;
       if (identifiedUserId.current) posthog.reset();
 
-      posthog.identify(user.id, {
-        $set: {
-          ...(user.primaryEmailAddress?.emailAddress && { email: user.primaryEmailAddress.emailAddress }),
-          ...(user.fullName && { name: user.fullName }),
-        },
-      });
+      // Clerk user ID only: no email or name in PostHog, so account deletion leaves nothing personal behind
+      posthog.identify(user.id);
       identifiedUserId.current = user.id;
     } else if (!isSignedIn && identifiedUserId.current) {
       posthog.reset();
       identifiedUserId.current = null;
     }
-  }, [isLoaded, isSignedIn, isUserLoaded, user?.fullName, user?.id, user?.primaryEmailAddress?.emailAddress]);
+  }, [isLoaded, isSignedIn, isUserLoaded, user?.id]);
 
   // The splash covers session restore, so a signed-in launch never flashes onboarding
   useEffect(() => {

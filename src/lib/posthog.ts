@@ -25,6 +25,8 @@ export const posthog = projectToken && host
   ? new PostHog(projectToken, {
       host,
       captureAppLifecycleEvents: true,
+      // Dev and production share one project; dashboards filter on this. A super property would be lost on reset().
+      before_send: (event) => ({ ...event, properties: { ...event.properties, environment: __DEV__ ? "development" : "production" } }),
       logs: {
         serviceName: "roam-mobile",
         environment: __DEV__ ? "development" : "production",
