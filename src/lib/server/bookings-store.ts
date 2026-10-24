@@ -3,7 +3,8 @@
 import { nightDates, nightLockId, type BookingRequest } from "@/lib/booking";
 
 const API = "https://crc5fllu.api.sanity.io/v2026-10-21/data";
-const auth = { Authorization: `Bearer ${process.env.SANITY_BOOKINGS_TOKEN}` };
+// Read per call: EAS Hosting may not have filled process.env when the module loads
+const auth = () => ({ Authorization: `Bearer ${process.env.SANITY_BOOKINGS_TOKEN}` });
 
 export type BookingStatus = "pending" | "confirmed" | "expired";
 
@@ -31,7 +32,7 @@ async function query<T>(dataset: "bookings" | "production", groq: string, params
   const search = new URLSearchParams({ query: groq });
   for (const [key, value] of Object.entries(params)) search.set(`$${key}`, JSON.stringify(value));
   // The token is sent for production reads too: harmless, and it skips the public rate limit
-  const res = await fetch(`${API}/query/${dataset}?${search}`, { headers: auth });
+  const res = await fetch(`${API}/query/${dataset}?${search}`, { headers: auth() });
   if (!res.ok) throw new Error(`Sanity query failed: ${res.status}`);
   return (await res.json()).result as T;
 }
@@ -40,7 +41,7 @@ async function query<T>(dataset: "bookings" | "production", groq: string, params
 async function mutate(mutations: Mutation[]): Promise<{ ok: true; ids: string[] } | { ok: false; status: number }> {
   const res = await fetch(`${API}/mutate/bookings?returnIds=true&visibility=sync`, {
     method: "POST",
-    headers: { ...auth, "Content-Type": "application/json" },
+    headers: { ...auth(), "Content-Type": "application/json" },
     body: JSON.stringify({ mutations }),
   });
   if (res.status === 409) return { ok: false, status: 409 };

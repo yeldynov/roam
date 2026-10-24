@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
   const price = priceBooking(nightsBetween(req.checkIn, req.checkOut), stay.nightlyPrice);
   // No payment_method_types: Stripe picks methods from the Dashboard settings
-  const intent = await stripe.paymentIntents.create({
+  const intent = await stripe().paymentIntents.create({
     amount: price.totalCents,
     currency: "usd",
     description: `${stay.title}, ${price.nights} night${price.nights === 1 ? "" : "s"}`,
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   let bookingId = await holdNights(req, fields);
   if (!bookingId && (await releaseStaleHolds(req, guestId))) bookingId = await holdNights(req, fields);
   if (!bookingId) {
-    await stripe.paymentIntents.cancel(intent.id);
+    await stripe().paymentIntents.cancel(intent.id);
     return fail(409, "unavailable");
   }
 
@@ -74,11 +74,11 @@ async function releaseStaleHolds(req: BookingRequest, guestId: string) {
   if (!stale.length || stale.length < new Set(holders.map((h) => h.paymentIntentId)).size) return false;
 
   for (const id of stale) {
-    const intent = await stripe.paymentIntents.retrieve(id);
+    const intent = await stripe().paymentIntents.retrieve(id);
     if (intent.status !== "canceled") {
       if (intent.status === "succeeded" || intent.status === "processing") return false;
       // Fails if the guest is paying right now; then the nights stay theirs
-      const cancelled = await stripe.paymentIntents.cancel(id).then(
+      const cancelled = await stripe().paymentIntents.cancel(id).then(
         () => true,
         () => false,
       );
