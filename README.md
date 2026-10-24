@@ -14,6 +14,11 @@
 
   <h3 align="center">Roam</h3>
   <p align="center">An Airbnb-style app where you search for stays in plain English</p>
+  <p align="center">
+    <a href="https://appetize.io/app/b_b7zfddw7bswku4lj3xi77rd5ba"><b>Try iOS in your browser</b></a>
+    ·
+    <a href="https://expo.dev/artifacts/eas/VtD14lRh4vpc0vxu6uSPwfyMfl1h0DcCE4ZgMr2UHN0.apk"><b>Download the Android APK</b></a>
+  </p>
 
   <img src="assets/screenshots/onboarding.png" alt="Roam onboarding screen: a lakeside cabin photo with the title Find a stay that fits your story" width="260" />
   <img src="assets/screenshots/home.png" alt="Roam home screen: the title Find your next stay, a one-sentence search field, category chips with Cabins selected, and a featured cabin card" width="260" />
@@ -30,6 +35,15 @@ When you find a stay you like, you pick dates and pay for it in the app. Hosts g
 
 I'm building it with a coding agent: I write a plan first, then add one feature at a time so the codebase stays something I understand. Auth, content, analytics and AI all run on real services.
 
+## Try it
+
+- **iOS:** [open the app in your browser](https://appetize.io/app/b_b7zfddw7bswku4lj3xi77rd5ba). It streams an iOS Simulator from Appetize, so there's nothing to install.
+- **Android:** [download the APK](https://expo.dev/artifacts/eas/VtD14lRh4vpc0vxu6uSPwfyMfl1h0DcCE4ZgMr2UHN0.apk) on your phone and install it. Android will ask you to allow installs from your browser.
+
+Sign up with any email you can read: Roam sends a code to verify it. Payments use Stripe's test mode, so pay with the card `4242 4242 4242 4242`, any future expiry date and any CVC. No real money moves.
+
+In this demo, a paid booking shows "Payment received" but doesn't appear on Trips. Bookings are confirmed by a Stripe webhook, and the demo server doesn't have one registered yet.
+
 ## Stack
 
 - [React Native](https://reactnative.dev/) and [Expo](https://expo.dev/) for one codebase that runs on iOS and Android.
@@ -38,6 +52,7 @@ I'm building it with a coding agent: I write a plan first, then add one feature 
 - [Clerk](https://clerk.com) for sign-up and sign-in. Saved stays are tied to the user's Clerk account, and host companies are Clerk Organizations.
 - [Sanity](https://www.sanity.io) holds the listings and generates the embeddings for search. Its content is also what the property chat answers from. Listing descriptions are written by Sanity's Agent Actions from each stay's facts, and kept only if a check finds nothing made up. Bookings live in a separate private dataset.
 - [Stripe](https://stripe.com) for payments. A booking is confirmed only when Stripe's webhook says the payment went through.
+- [EAS](https://expo.dev/eas) builds the apps and hosts the API routes (booking, trips, host edits) on EAS Hosting.
 - [PostHog](https://posthog.com) for analytics, from a user's first search to the stays they save.
 
 ## What it does
