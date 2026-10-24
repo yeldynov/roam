@@ -2,7 +2,7 @@
 
 Status: approved
 
-> Progress (2026-10-24): steps 1–3 built. Step 4 is paused. The 10 env vars exist in the EAS `production` environment, but `npx expo export --platform web` fails: `web.output: "server"` renders every screen for web, and `@stripe/stripe-react-native` (imported by `_layout.tsx` and `stay/[id]/book.tsx`) is native-only. Resume by picking a web stub for it (a Metro resolver rule on web, or a `.web.ts` platform shim), then keep going from step 4.2.
+> Updated after approval (2026-10-24): the user has no Apple Developer account, so the "free link" is an Android APK (EAS `preview` profile) plus an Appetize browser demo of an iOS Simulator build (`simulator` profile) instead of TestFlight. The Stripe webhook step is skipped, so hosted bookings stay pending. To get the web export building, `metro.config.js` stubs native-only packages on web and bundles Stripe's worker build, and server code reads env per call. Steps 1–4 are done (the API is live at https://rn-roam.expo.app); steps 5 and 6 are replaced by these builds.
 
 ## Goal
 
