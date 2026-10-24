@@ -89,6 +89,9 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="stay/[id]/book" />
         <Stack.Screen name="account/settings" />
         <Stack.Screen name="account/personal-info" />
+        <Stack.Screen name="host/index" />
+        <Stack.Screen name="host/stay/[id]" />
+        <Stack.Screen name="host/team" />
       </Stack.Protected>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="index" />

@@ -1,7 +1,8 @@
-import { useUser } from "@clerk/expo";
+import { useOrganizationList, useUser } from "@clerk/expo";
+import type { UserOrganizationInvitationResource } from "@clerk/expo/types";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Bell, Briefcase, CircleHelp, CreditCard, FileText, MapPin, Settings, User } from "lucide-react-native";
+import { Bell, Briefcase, Building2, CircleHelp, CreditCard, FileText, MapPin, Settings, User } from "lucide-react-native";
 import { styled } from "nativewind";
 import { useState } from "react";
 import { ActivityIndicator, Linking, Alert as NativeAlert, Platform, ScrollView, View } from "react-native";
@@ -11,6 +12,8 @@ import { InfoSheet, Paragraphs } from "@/components/stays/info-sheet";
 import { Alert, Button, Icon, IconButton, ListGroup, ListRow, Text, Wordmark } from "@/components/ui";
 import { homeCity } from "@/lib/account";
 import { SUPPORT_EMAIL } from "@/lib/ask";
+import { authMessage } from "@/lib/auth";
+import { posthog } from "@/lib/posthog";
 import { useCancellationPolicies } from "@/lib/stays";
 
 const StyledImage = styled(Image, { className: "style" });
@@ -74,6 +77,8 @@ export default function Profile() {
           <ListRow variant="menu" icon={Briefcase} title="Trips" onPress={() => router.navigate("/trips")} />
         </ListGroup>
 
+        <HostingGroup />
+
         <ListGroup title="Preferences">
           <ListRow variant="menu" icon={Bell} title="Notifications" onPress={() => comingSoon("Notification settings")} />
           <ListRow
@@ -98,6 +103,52 @@ export default function Profile() {
         <CancellationPolicies enabled={policiesOpen} />
       </InfoSheet>
     </>
+  );
+}
+
+/** Shown only to members of a host company, or to someone with a pending invitation to one */
+function HostingGroup() {
+  const { isLoaded, userMemberships, userInvitations, setActive } = useOrganizationList({
+    userMemberships: true,
+    userInvitations: { status: "pending" },
+  });
+  if (!isLoaded || (!userMemberships.count && !userInvitations.count)) return null;
+
+  const accept = (inv: UserOrganizationInvitationResource) => {
+    const company = inv.publicOrganizationData;
+    NativeAlert.alert(`Join ${company.name}?`, "You'll be able to edit its stays on Roam.", [
+      { text: "Not now", style: "cancel" },
+      {
+        text: "Join",
+        onPress: async () => {
+          try {
+            await inv.accept();
+            posthog?.capture("host_invitation_accepted", { org_id: company.id });
+            await Promise.all([userMemberships.revalidate?.(), userInvitations.revalidate?.()]);
+            await setActive?.({ organization: company.id });
+            router.push("/host");
+          } catch (e) {
+            NativeAlert.alert("Couldn't join", authMessage(e));
+          }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <ListGroup title="Hosting">
+      {!!userMemberships.count && <ListRow variant="menu" icon={Building2} title="Hosting" onPress={() => router.push("/host")} />}
+      {userInvitations.data?.map((inv) => (
+        <ListRow
+          key={inv.id}
+          variant="menu"
+          icon={Building2}
+          title={`Join ${inv.publicOrganizationData.name}`}
+          subtitle="You're invited to host on Roam"
+          onPress={() => accept(inv)}
+        />
+      ))}
+    </ListGroup>
   );
 }
 

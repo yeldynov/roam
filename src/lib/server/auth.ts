@@ -15,4 +15,17 @@ export async function authUserId(request: Request): Promise<string | null> {
   return state.isAuthenticated ? state.toAuth().userId : null;
 }
 
-export const unauthorized = () => Response.json({ error: "unauthorized" }, { status: 401 });
+/**
+ * The caller and their active host company, or null when not signed in. `orgId` is null for guests.
+ * Checks the custom `org:stays:edit` permission: Clerk's `org:sys_*` permissions aren't in session claims.
+ */
+export async function authOrg(request: Request) {
+  const state = await clerk.authenticateRequest(request, { jwtKey: process.env.CLERK_JWT_KEY });
+  if (!state.isAuthenticated) return null;
+  const auth = state.toAuth();
+  return { userId: auth.userId, orgId: auth.orgId ?? null, orgRole: auth.orgRole ?? null, canEditStays: auth.has({ permission: "org:stays:edit" }) };
+}
+
+export const forbidden = () => Response.json({ error: "forbidden" }, { status: 403 });
+
+export const unauthorized =() => Response.json({ error: "unauthorized" }, { status: 401 });

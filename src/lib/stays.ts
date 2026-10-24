@@ -1,5 +1,7 @@
 import { useEffect, useEffectEvent, useState } from "react";
 
+import { apiFetch } from "@/lib/booking-api";
+import type { PatchErrors, StayPatch } from "@/lib/host";
 import { posthogLogger } from "@/lib/posthog-logger";
 import { sanityFetch } from "@/lib/sanity";
 import { buildSearchQuery, PROJECTION, SEARCH_META_QUERY, type Filters, type SearchMeta, type SearchStay, type Sort } from "@/lib/search";
@@ -290,4 +292,68 @@ export function useSavedStays(ids: string[]) {
       setAttempt((n) => n + 1);
     },
   };
+}
+
+/** A company's stay with the fields its team may edit (see src/lib/host.ts) */
+export type HostStay = Required<StayPatch> & { id: string; title: string; location: string; image: string | null };
+
+const HOST_STAYS_QUERY = `*[_type == "property" && host->clerkOrgId == $orgId] | order(title asc){
+  "id": _id,
+  title,
+  "location": location.city + ", " + location.region,
+  "image": photos[0].asset->url,
+  nightlyPrice,
+  maxGuests,
+  petsAllowed,
+  "amenities": coalesce(amenities, []),
+  checkInTime,
+  checkOutTime,
+  "houseRules": coalesce(houseRules, [])
+}`;
+
+/**
+ * The active company's stays, read live (not from the CDN) so a host sees their own save at once.
+ * Refetches when `refreshKey` changes (e.g. the screen gains focus). Waits while `orgId` is null.
+ */
+export function useHostStays(orgId: string | null | undefined, refreshKey = 0) {
+  const [state, setState] = useState<{ stays?: HostStay[]; error?: Error }>({});
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!orgId) return;
+    const controller = new AbortController();
+    sanityFetch<HostStay[]>(HOST_STAYS_QUERY, { orgId }, controller.signal, false).then(
+      (stays) => setState({ stays }),
+      (error: Error) => {
+        if (controller.signal.aborted) return;
+        posthogLogger.error("host stays load failed", { source: "sanity_api", error_name: error.name });
+        // Keep showing the last list when a focus refetch fails
+        setState((s) => (s.stays ? s : { error }));
+      },
+    );
+    return () => controller.abort();
+  }, [orgId, refreshKey, attempt]);
+
+  return {
+    stays: state.stays,
+    error: state.error,
+    loading: !state.stays && !state.error,
+    retry: () => {
+      setState({});
+      setAttempt((n) => n + 1);
+    },
+  };
+}
+
+export type SaveStayResult = { ok: true; stay: StayPatch } | { ok: false; status: number; errors?: PatchErrors };
+
+/** Sends changed fields to the host API route; status 0 means the request never got an answer */
+export async function saveStay(id: string, patch: StayPatch, token: string | null): Promise<SaveStayResult> {
+  try {
+    const res = await apiFetch(`/api/host/stays/${encodeURIComponent(id)}`, token, { method: "PATCH", body: JSON.stringify(patch) });
+    const body = (await res.json().catch(() => ({}))) as { stay?: StayPatch; errors?: PatchErrors };
+    return res.ok && body.stay ? { ok: true, stay: body.stay } : { ok: false, status: res.status, errors: body.errors };
+  } catch {
+    return { ok: false, status: 0 };
+  }
 }
