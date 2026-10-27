@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/expo";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 import { posthogLogger } from "@/lib/posthog-logger";
 
@@ -30,25 +30,27 @@ export function useTrips(refreshKey: number) {
   const { getToken } = useAuth();
   const [state, setState] = useState<{ trips?: Trip[]; error?: Error }>({});
   const [attempt, setAttempt] = useState(0);
+  // @clerk/expo's getToken is a new function every render; as an effect dependency it refetches after every result
+  const loadTrips = useEffectEvent(async () => {
+    const res = await apiFetch("/api/bookings", await getToken());
+    if (!res.ok) throw new Error(`Trips failed: ${res.status}`);
+    return ((await res.json()) as { trips: Trip[] }).trips;
+  });
 
   useEffect(() => {
     let live = true;
-    (async () => {
-      const res = await apiFetch("/api/bookings", await getToken());
-      if (!res.ok) throw new Error(`Trips failed: ${res.status}`);
-      return ((await res.json()) as { trips: Trip[] }).trips;
-    })().then(
+    loadTrips().then(
       (trips) => live && setState({ trips }),
       (error: Error) => {
         if (!live) return;
-        posthogLogger.error("trips load failed", { source: "api", error_name: error.name });
+        posthogLogger.error("trips load failed", { source: "api", error_name: error.name, error_message: error.message });
         setState((s) => (s.trips ? s : { error }));
       },
     );
     return () => {
       live = false;
     };
-  }, [getToken, refreshKey, attempt]);
+  }, [refreshKey, attempt]);
 
   return {
     trips: state.trips,
